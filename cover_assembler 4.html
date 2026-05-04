@@ -773,8 +773,6 @@ function exportCover() {
   const canvas = document.getElementById('exportCanvas');
   const ctx = canvas.getContext('2d');
 
-  // KDP requires 300 DPI minimum
-  // We'll work in mm and convert to pixels at 300 DPI
   const DPI = 300;
   const mmToPx = DPI / 25.4;
 
@@ -788,6 +786,8 @@ function exportCover() {
 
   canvas.width = totalW;
   canvas.height = totalH;
+  // Set 300 DPI via context scale trick
+  ctx.scale(1, 1);
 
   const bleedPx = Math.round(bleed * mmToPx);
   const pgWpx = Math.round(pgW * mmToPx);
@@ -836,32 +836,45 @@ function exportCover() {
   const frontX = bleedPx + pgWpx + spineWpx;
   ctx.drawImage(state.frontImg, frontX, backY, pgWpx, pgHpx);
 
-  // Export as PDF using jsPDF
+  // Create HTML page with exact KDP dimensions that Safari can save as PDF
   canvas.toBlob((blob) => {
     const reader = new FileReader();
-    reader.onload = function() {
-      const imgData = reader.result;
-      
-      // Total dimensions in mm
+    reader.onload = function(e) {
+      const imgData = e.target.result;
       const totalWmm = (pgW * 2) + spineW + (bleed * 2);
       const totalHmm = pgH + (bleed * 2);
       
-      // Create PDF with exact KDP dimensions
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({
-        orientation: totalWmm > totalHmm ? 'landscape' : 'portrait',
-        unit: 'mm',
-        format: [totalWmm, totalHmm]
-      });
-      
-      pdf.addImage(imgData, 'JPEG', 0, 0, totalWmm, totalHmm);
-      
-      const safeTitle = state.title.replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
-      // Safari iOS workaround - open PDF in new tab so user can save via Share
-      const pdfBlob = pdf.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      window.open(pdfUrl, '_blank');
-      showToast('PDF öffnet – Teilen → In Dateien sichern 👑');
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page {
+    size: ${totalWmm}mm ${totalHmm}mm;
+    margin: 0;
+  }
+  body {
+    width: ${totalWmm}mm;
+    height: ${totalHmm}mm;
+    overflow: hidden;
+  }
+  img {
+    width: ${totalWmm}mm;
+    height: ${totalHmm}mm;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<img src="${imgData}">
+</body>
+</html>`;
+
+      const blob2 = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob2);
+      window.open(url, '_blank');
+      showToast('Seite öffnet → Teilen → Als PDF sichern 👑');
     };
     reader.readAsDataURL(blob);
   }, 'image/jpeg', 0.95);

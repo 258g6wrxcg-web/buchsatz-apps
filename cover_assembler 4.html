@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cover Assembler – KDP Print</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #1a1520;
+  --surface: #221c2e;
+  --surface2: #2d2540;
+  --border: #3d3356;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --text: #f0ead8;
+  --text2: #9b8fb0;
+  --purple: #6b21a8;
+  --success: #2e7d5e;
+  --radius: 12px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+}
+
+/* Stars background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(1px 1px at 20% 30%, rgba(201,168,76,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 10%, rgba(201,168,76,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 80%, rgba(201,168,76,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 60%, rgba(201,168,76,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 70%, rgba(201,168,76,0.15) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; padding: 0 0 40px; }
+
+/* Header */
+.header {
+  background: linear-gradient(180deg, #2d1f4a 0%, var(--bg) 100%);
+  padding: 20px 16px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.header-crown { font-size: 28px; display: block; margin-bottom: 4px; }
+.header-title {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.header-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+/* Steps */
+.steps {
+  display: flex;
+  padding: 14px 16px;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.steps::-webkit-scrollbar { display: none; }
+.step {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.step.active {
+  background: var(--gold);
+  color: #1a1520;
+  border-color: var(--gold);
+}
+.step.done {
+  border-color: var(--success);
+  color: #4ade80;
+}
+.step-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+}
+.step.active .step-num { background: rgba(0,0,0,0.2); }
+.step.done .step-num { background: var(--success); color: #fff; }
+
+/* Panels */
+.panel { display: none; padding: 20px 16px; animation: fadeIn 0.25s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2);
+}
+.card-title {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.card-body { padding: 16px; }
+
+/* Upload zones */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:active { border-color: var(--gold); background: rgba(201,168,76,0.05); }
+.upload-zone.has-image { border-style: solid; border-color: var(--gold); padding: 0; }
+.upload-zone img {
+  width: 100%; display: block;
+  border-radius: 8px;
+  max-height: 200px;
+  object-fit: cover;
+}
+.upload-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+.upload-label { font-size: 14px; font-weight: 500; color: var(--text); }
+.upload-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.upload-change {
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(0,0,0,0.7); color: #fff;
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; cursor: pointer;
+}
+input[type="file"] { display: none; }
+
+/* Form */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+input[type="text"], input[type="number"], select {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  color: var(--text); background: var(--surface2);
+  -webkit-appearance: none;
+}
+input:focus, select:focus { outline: none; border-color: var(--gold); }
+
+/* Spine calculator */
+.spine-result {
+  background: var(--surface2);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  margin-top: 12px;
+}
+.spine-mm { font-family: 'Cinzel', serif; font-size: 28px; color: var(--gold); font-weight: 600; }
+.spine-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+/* Color picker row */
+.color-row { display: flex; gap: 8px; align-items: center; }
+.color-row input[type="color"] {
+  width: 44px; height: 44px; padding: 2px;
+  border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.color-row input[type="text"] { flex: 1; }
+
+/* Preview */
+.preview-container {
+  background: #333;
+  border-radius: var(--radius);
+  padding: 16px 8px;
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+.cover-preview {
+  display: flex;
+  align-items: stretch;
+  margin: 0 auto;
+  width: fit-content;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+.prev-back, .prev-front {
+  width: 120px;
+  min-height: 185px;
+  position: relative;
+  overflow: hidden;
+}
+.prev-spine {
+  min-height: 185px;
+  background: #1a1520;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.prev-spine-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: var(--gold);
+  text-align: center;
+  padding: 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 100%;
+}
+.prev-back img, .prev-front img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.prev-placeholder {
+  width: 100%; height: 100%;
+  min-height: 185px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; color: rgba(255,255,255,0.3);
+  font-size: 11px;
+}
+.prev-placeholder-icon { font-size: 24px; }
+
+/* Info box */
+.info-box {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.info-box strong { color: var(--gold); }
+
+/* Buttons */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px 20px; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s; width: 100%;
+  user-select: none;
+}
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: #1a1520;
+}
+.btn-gold:active { opacity: 0.85; transform: scale(0.98); }
+.btn-secondary {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:active { background: var(--border); }
+.btn + .btn { margin-top: 10px; }
+
+/* Toggle */
+.toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.toggle-btn {
+  padding: 7px 14px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 13px; font-weight: 500; background: var(--surface2); color: var(--text2);
+  cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.toggle-btn.active { background: var(--gold); border-color: var(--gold); color: #1a1520; }
+
+/* Row */
+.row { display: flex; gap: 10px; }
+.row .field { flex: 1; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+.badge-green { background: rgba(74,222,128,0.1); color: #4ade80; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--gold); color: #1a1520;
+  padding: 12px 24px; border-radius: 24px;
+  font-size: 13px; font-weight: 600; z-index: 999;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Checklist */
+.check-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.check-item:last-child { border-bottom: none; }
+
+.safe { height: 30px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="header-crown">👑</span>
+    <div class="header-title">Cover Assembler</div>
+    <div class="header-sub">KDP Print-Cover · Vorne + Rücken + Rückseite</div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active" id="step1" onclick="goStep(1)">
+      <div class="step-num">1</div> Maße
+    </div>
+    <div class="step" id="step2" onclick="goStep(2)">
+      <div class="step-num">2</div> Vorderseite
+    </div>
+    <div class="step" id="step3" onclick="goStep(3)">
+      <div class="step-num">3</div> Rückseite
+    </div>
+    <div class="step" id="step4" onclick="goStep(4)">
+      <div class="step-num">4</div> Buchrücken
+    </div>
+    <div class="step" id="step5" onclick="goStep(5)">
+      <div class="step-num">5</div> Vorschau & Export
+    </div>
+  </div>
+
+  <!-- STEP 1: MASSE -->
+  <div class="panel active" id="panel1">
+    <div class="info-box">
+      Gib deine Buchdaten ein – die App berechnet automatisch die <strong>Rückenbreite</strong> und die <strong>Gesamtbreite</strong> des Print-Covers.
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Buchformat</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Format-Voreinstellung</label>
+          <select onchange="applyFormat(this.value)" id="formatSelect">
+            <option value="us_trade">US Trade – 15,2 × 22,9 cm (KDP Standard)</option>
+            <option value="pocket">Taschenbuch – 12,7 × 20,3 cm</option>
+            <option value="a5">A5 – 14,8 × 21,0 cm</option>
+            <option value="digest">Digest – 15,2 × 22,9 cm</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Breite (mm)</label>
+            <input type="number" id="pgW" value="152" min="80" max="280" oninput="calcSpine()">
+          </div>
+          <div class="field">
+            <label>Höhe (mm)</label>
+            <input type="number" id="pgH" value="229" min="120" max="400" oninput="calcSpine()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Seitenzahl & Papier</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Anzahl Seiten im Buch</label>
+          <input type="number" id="pageCount" value="200" min="24" max="828" oninput="calcSpine()">
+        </div>
+        <div class="field">
+          <label>Papierfarbe</label>
+          <div class="toggle-group" id="paper-grp">
+            <div class="toggle-btn active" onclick="tog1('paper-grp',this,'white');calcSpine()">Weiß</div>
+            <div class="toggle-btn" onclick="tog1('paper-grp',this,'cream');calcSpine()">Crème</div>
+          </div>
+        </div>
+
+        <div class="spine-result">
+          <div class="spine-mm" id="spineResult">11,4 mm</div>
+          <div class="spine-label">Rückenbreite</div>
+          <div style="margin-top:8px;font-size:12px;color:var(--text2)">Gesamtbreite Cover: <strong id="totalWidth" style="color:var(--gold)">—</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Metadaten</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Buchtitel</label>
+          <input type="text" id="bookTitle" value="Queen of Hope" oninput="updatePreview()">
+        </div>
+        <div class="field">
+          <label>Autorin</label>
+          <input type="text" id="bookAuthor" value="Katharina Winterfeld" oninput="updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" onclick="goStep(2)">Weiter → Vorderseite hochladen</button>
+    <div class="safe"></div>
+  </div>
+
+  <!-- STEP 2: VORDERSEITE -->
+  <div class="panel" id="panel2">
+    <div class="info-box">
+      Lade dein <strong>fertiges Vorder-Cover</strong> hoch – das das du heute in Canva erstellt hast. JPG oder PNG.
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Vorderseite</span><span class="badge badge-gold">Pflicht</span></div>
+      <div class="card-body">
+        <div class="upload-zone" id="frontZone" onclick="document.getElementById('frontInput').click()">
+          <span class="upload-icon">🖼️</span>
+          <div class="upload-label">Vorder-Cover hochladen</div>
+          <div class="upload-sub">JPG oder PNG · dein Canva-Cover</div>
+        </div>
+        <input type="file" id="frontInput" accept="image/*" onchange="loadImage('front',this)">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="goStep(1)">← Zurück</button>
+      <button class="btn btn-gold" style="flex:2" onclick="goStep(3)">Weiter → Rückseite</button>
+    </div>
+    <div class="safe"></div>
+  </div>
+
+  <!-- STEP 3: RÜCKSEITE -->
+  <div class="panel" id="panel3">
+    <div class="info-box">
+      Lade deine <strong>Rückseite</strong> hoch – das Canva-Design mit dem Klappentext. Oder wähle eine einfarbige Rückseite.
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Rückseite</span><span class="badge badge-gold">Wählen</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Typ</label>
+          <div class="toggle-group" id="back-type-grp">
+            <div class="toggle-btn active" onclick="tog1('back-type-grp',this,'image');toggleBackType('image')">Eigenes Bild</div>
+            <div class="toggle-btn" onclick="tog1('back-type-grp',this,'color');toggleBackType('color')">Einfarbig</div>
+          </div>
+        </div>
+
+        <div id="backImageSection">
+          <div class="upload-zone" id="backZone" onclick="document.getElementById('backInput').click()">
+            <span class="upload-icon">🖼️</span>
+            <div class="upload-label">Rückseiten-Bild hochladen</div>
+            <div class="upload-sub">JPG oder PNG · dein Klappentext-Design</div>
+          </div>
+          <input type="file" id="backInput" accept="image/*" onchange="loadImage('back',this)">
+        </div>
+
+        <div id="backColorSection" style="display:none;">
+          <div class="field" style="margin-top:12px">
+            <label>Hintergrundfarbe</label>
+            <div class="color-row">
+              <input type="color" id="backColor" value="#3b1f5e" oninput="document.getElementById('backColorHex').value=this.value;updatePreview()">
+              <input type="text" id="backColorHex" value="#3b1f5e" oninput="document.getElementById('backColor').value=this.value;updatePreview()">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="goStep(2)">← Zurück</button>
+      <button class="btn btn-gold" style="flex:2" onclick="goStep(4)">Weiter → Buchrücken</button>
+    </div>
+    <div class="safe"></div>
+  </div>
+
+  <!-- STEP 4: BUCHRÜCKEN -->
+  <div class="panel" id="panel4">
+    <div class="info-box">
+      Der <strong>Buchrücken</strong> wird automatisch in der richtigen Breite erstellt. Wähle Farbe und Schrift.
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Rücken-Design</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Hintergrundfarbe Rücken</label>
+          <div class="color-row">
+            <input type="color" id="spineColor" value="#3b1f5e" oninput="document.getElementById('spineColorHex').value=this.value;updatePreview()">
+            <input type="text" id="spineColorHex" value="#3b1f5e" oninput="document.getElementById('spineColor').value=this.value;updatePreview()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Textfarbe</label>
+          <div class="color-row">
+            <input type="color" id="spineTextColor" value="#c9a84c" oninput="document.getElementById('spineTextColorHex').value=this.value;updatePreview()">
+            <input type="text" id="spineTextColorHex" value="#c9a84c" oninput="document.getElementById('spineTextColor').value=this.value;updatePreview()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Rücken-Text</label>
+          <div class="toggle-group" id="spine-text-grp">
+            <div class="toggle-btn active" onclick="tog1('spine-text-grp',this)">Titel + Autorin</div>
+            <div class="toggle-btn" onclick="tog1('spine-text-grp',this)">Nur Titel</div>
+            <div class="toggle-btn" onclick="tog1('spine-text-grp',this)">Nur Autorin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="goStep(3)">← Zurück</button>
+      <button class="btn btn-gold" style="flex:2" onclick="goStep(5)">Weiter → Vorschau & Export</button>
+    </div>
+    <div class="safe"></div>
+  </div>
+
+  <!-- STEP 5: VORSCHAU & EXPORT -->
+  <div class="panel" id="panel5">
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Cover-Vorschau</span><span class="badge badge-gold" id="prevBadge">Zusammengesetzt</span></div>
+      <div class="card-body" style="padding:12px 8px;">
+        <div class="preview-container">
+          <div class="cover-preview" id="coverPreview">
+            <!-- Back -->
+            <div class="prev-back" id="prevBack">
+              <div class="prev-placeholder">
+                <span class="prev-placeholder-icon">🖼️</span>
+                Rückseite
+              </div>
+            </div>
+            <!-- Spine -->
+            <div class="prev-spine" id="prevSpine" style="width:18px;background:#3b1f5e;">
+              <div class="prev-spine-text" id="prevSpineText" style="color:#c9a84c;">Queen of Hope · Katharina Winterfeld</div>
+            </div>
+            <!-- Front -->
+            <div class="prev-front" id="prevFront">
+              <div class="prev-placeholder">
+                <span class="prev-placeholder-icon">🖼️</span>
+                Vorderseite
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--text2);text-align:center">Vorschau nicht maßstabsgetreu</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">KDP-Checkliste</span></div>
+      <div class="card-body" id="checklist"></div>
+    </div>
+
+    <div class="info-box">
+      Der Export erstellt eine <strong>zusammengesetzte JPG-Datei</strong> die du direkt bei KDP als Print-Cover hochladen kannst.
+    </div>
+
+    <button class="btn btn-gold" onclick="exportCover()">
+      👑 &nbsp;Cover zusammenführen & exportieren
+    </button>
+
+    <button class="btn btn-secondary" onclick="goStep(1)" style="margin-top:10px">
+      ← Nochmal bearbeiten
+    </button>
+
+    <canvas id="exportCanvas" style="display:none"></canvas>
+    <div class="safe"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// STATE
+let state = {
+  pgW: 152, pgH: 229,
+  pages: 200, paper: 'white',
+  spineW: 0,
+  frontImg: null, backImg: null,
+  backType: 'image',
+  title: 'Queen of Hope',
+  author: 'Katharina Winterfeld',
+  spineColor: '#3b1f5e',
+  spineTextColor: '#c9a84c',
+  backColor: '#3b1f5e'
+};
+
+// STEP NAVIGATION
+function goStep(n) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('panel'+n).classList.add('active');
+  document.getElementById('step'+n).classList.add('active');
+  // Mark previous steps done
+  for (let i = 1; i < n; i++) {
+    document.getElementById('step'+i).classList.add('done');
+    document.getElementById('step'+i).querySelector('.step-num').textContent = '✓';
+  }
+  if (n === 5) { buildChecklist(); updatePreview(); }
+  window.scrollTo(0, 0);
+}
+
+// FORMAT PRESETS
+function applyFormat(val) {
+  const p = { us_trade:[152,229], pocket:[127,203], a5:[148,210], digest:[152,229] };
+  if (p[val]) {
+    document.getElementById('pgW').value = p[val][0];
+    document.getElementById('pgH').value = p[val][1];
+    calcSpine();
+  }
+}
+
+// SPINE CALCULATION
+// KDP formula: white = 0.0572mm per page, cream = 0.0635mm per page
+function calcSpine() {
+  const pages = parseInt(document.getElementById('pageCount').value) || 200;
+  const paper = state.paper || 'white';
+  const factor = paper === 'cream' ? 0.0635 : 0.0572;
+  const spineW = pages * factor;
+  state.spineW = spineW;
+  state.pgW = parseInt(document.getElementById('pgW').value) || 152;
+  state.pgH = parseInt(document.getElementById('pgH').value) || 229;
+  state.pages = pages;
+
+  document.getElementById('spineResult').textContent = spineW.toFixed(1) + ' mm';
+  
+  // Total width = back + bleed + spine + bleed + front (3mm bleed each side)
+  const total = (state.pgW * 2) + spineW + 6;
+  document.getElementById('totalWidth').textContent = total.toFixed(1) + ' mm × ' + state.pgH + ' mm';
+  updatePreview();
+}
+
+// TOGGLE
+function tog1(groupId, el, val) {
+  document.querySelectorAll('#'+groupId+' .toggle-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if (groupId === 'paper-grp') { state.paper = val; calcSpine(); }
+  updatePreview();
+}
+
+function toggleBackType(type) {
+  state.backType = type;
+  document.getElementById('backImageSection').style.display = type === 'image' ? 'block' : 'none';
+  document.getElementById('backColorSection').style.display = type === 'color' ? 'block' : 'none';
+  updatePreview();
+}
+
+// IMAGE LOADING
+function loadImage(side, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      if (side === 'front') {
+        state.frontImg = img;
+        const zone = document.getElementById('frontZone');
+        zone.classList.add('has-image');
+        zone.innerHTML = `<img src="${e.target.result}"><div class="upload-change">Ändern</div>`;
+        zone.onclick = () => document.getElementById('frontInput').click();
+      } else {
+        state.backImg = img;
+        const zone = document.getElementById('backZone');
+        zone.classList.add('has-image');
+        zone.innerHTML = `<img src="${e.target.result}"><div class="upload-change">Ändern</div>`;
+        zone.onclick = () => document.getElementById('backInput').click();
+      }
+      updatePreview();
+      showToast(side === 'front' ? 'Vorderseite geladen ✓' : 'Rückseite geladen ✓');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// PREVIEW UPDATE
+function updatePreview() {
+  state.title = document.getElementById('bookTitle').value || 'Titel';
+  state.author = document.getElementById('bookAuthor').value || 'Autorin';
+  state.spineColor = document.getElementById('spineColor').value;
+  state.spineTextColor = document.getElementById('spineTextColor').value;
+  state.backColor = document.getElementById('backColor').value;
+
+  // Spine preview
+  const spineEl = document.getElementById('prevSpine');
+  const spineW = Math.max(12, state.spineW * 0.5); // scale for preview
+  spineEl.style.width = spineW + 'px';
+  spineEl.style.background = state.spineColor;
+
+  const spineTextEl = document.getElementById('prevSpineText');
+  spineTextEl.style.color = state.spineTextColor;
+
+  const spineMode = document.querySelector('#spine-text-grp .toggle-btn.active');
+  const spineModeText = spineMode ? spineMode.textContent : 'Titel + Autorin';
+  if (spineModeText === 'Nur Titel') spineTextEl.textContent = state.title;
+  else if (spineModeText === 'Nur Autorin') spineTextEl.textContent = state.author;
+  else spineTextEl.textContent = state.title + ' · ' + state.author;
+
+  // Front preview
+  const frontEl = document.getElementById('prevFront');
+  if (state.frontImg) {
+    frontEl.innerHTML = `<img src="${state.frontImg.src}">`;
+  }
+
+  // Back preview
+  const backEl = document.getElementById('prevBack');
+  if (state.backType === 'color') {
+    backEl.innerHTML = '';
+    backEl.style.background = state.backColor;
+  } else if (state.backImg) {
+    backEl.style.background = '';
+    backEl.innerHTML = `<img src="${state.backImg.src}">`;
+  } else {
+    backEl.style.background = '';
+    backEl.innerHTML = `<div class="prev-placeholder"><span class="prev-placeholder-icon">🖼️</span>Rückseite</div>`;
+  }
+}
+
+// CHECKLIST
+function buildChecklist() {
+  const checks = [
+    { label: 'Vorderseite hochgeladen', ok: !!state.frontImg },
+    { label: 'Rückseite definiert', ok: !!(state.backImg || state.backType === 'color') },
+    { label: 'Buchrücken konfiguriert', ok: true },
+    { label: 'Seitenzahl eingegeben', ok: state.pages > 0 },
+    { label: 'Rückenbreite berechnet', ok: state.spineW > 0 },
+    { label: 'Titel & Autorin eingetragen', ok: !!(state.title && state.author) },
+  ];
+  document.getElementById('checklist').innerHTML = checks.map(c =>
+    `<div class="check-item">
+      <span style="font-size:16px">${c.ok ? '✅' : '⚠️'}</span>
+      <span style="color:${c.ok ? 'var(--text)' : '#f59e0b'}">${c.label}</span>
+    </div>`
+  ).join('');
+}
+
+// EXPORT
+function exportCover() {
+  if (!state.frontImg) { showToast('Bitte zuerst Vorderseite hochladen!'); return; }
+
+  const canvas = document.getElementById('exportCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // KDP requires 300 DPI minimum
+  // We'll work in mm and convert to pixels at 300 DPI
+  const DPI = 300;
+  const mmToPx = DPI / 25.4;
+
+  const bleed = 3; // 3mm bleed on each outer edge
+  const spineW = state.spineW;
+  const pgW = state.pgW;
+  const pgH = state.pgH;
+
+  const totalW = Math.round((pgW * 2 + spineW + bleed * 2) * mmToPx);
+  const totalH = Math.round((pgH + bleed * 2) * mmToPx);
+
+  canvas.width = totalW;
+  canvas.height = totalH;
+
+  const bleedPx = Math.round(bleed * mmToPx);
+  const pgWpx = Math.round(pgW * mmToPx);
+  const pgHpx = Math.round(pgH * mmToPx);
+  const spineWpx = Math.round(spineW * mmToPx);
+
+  // Fill background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, totalW, totalH);
+
+  // Draw back cover (left side)
+  const backX = bleedPx;
+  const backY = bleedPx;
+  if (state.backType === 'color' || !state.backImg) {
+    ctx.fillStyle = state.backColor;
+    ctx.fillRect(backX, backY, pgWpx, pgHpx);
+  } else {
+    ctx.drawImage(state.backImg, backX, backY, pgWpx, pgHpx);
+  }
+
+  // Draw spine (middle)
+  const spineX = bleedPx + pgWpx;
+  ctx.fillStyle = state.spineColor;
+  ctx.fillRect(spineX, backY, spineWpx, pgHpx);
+
+  // Spine text
+  if (spineWpx > 20) {
+    ctx.save();
+    ctx.translate(spineX + spineWpx/2, backY + pgHpx/2);
+    ctx.rotate(-Math.PI/2);
+    const spineFontSize = Math.max(20, Math.min(spineWpx * 0.4, 60));
+    ctx.font = `${spineFontSize}px Cinzel, Georgia, serif`;
+    ctx.fillStyle = state.spineTextColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const spineMode = document.querySelector('#spine-text-grp .toggle-btn.active');
+    const spineModeText = spineMode ? spineMode.textContent : 'Titel + Autorin';
+    let spineText = state.title + '  ·  ' + state.author;
+    if (spineModeText === 'Nur Titel') spineText = state.title;
+    if (spineModeText === 'Nur Autorin') spineText = state.author;
+    ctx.fillText(spineText, 0, 0);
+    ctx.restore();
+  }
+
+  // Draw front cover (right side)
+  const frontX = bleedPx + pgWpx + spineWpx;
+  ctx.drawImage(state.frontImg, frontX, backY, pgWpx, pgHpx);
+
+  // Export as PDF using jsPDF
+  canvas.toBlob((blob) => {
+    const reader = new FileReader();
+    reader.onload = function() {
+      const imgData = reader.result;
+      
+      // Total dimensions in mm
+      const totalWmm = (pgW * 2) + spineW + (bleed * 2);
+      const totalHmm = pgH + (bleed * 2);
+      
+      // Create PDF with exact KDP dimensions
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: totalWmm > totalHmm ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: [totalWmm, totalHmm]
+      });
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, totalWmm, totalHmm);
+      
+      const safeTitle = state.title.replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
+      // Safari iOS workaround - open PDF in new tab so user can save via Share
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      showToast('PDF öffnet – Teilen → In Dateien sichern 👑');
+    };
+    reader.readAsDataURL(blob);
+  }, 'image/jpeg', 0.95);
+}
+
+// TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// INIT
+calcSpine();
+</script>
+</body>
+</html>

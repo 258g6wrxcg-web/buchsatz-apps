@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Buchsatz Studio Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0eeea;
+  --border: #ddd9d0;
+  --text: #1a1916;
+  --text2: #6b6760;
+  --accent: #2a4a6b;
+  --accent-light: #e8eef5;
+  --accent2: #8b4513;
+  --success: #2e7d5e;
+  --danger: #c0392b;
+  --warn: #b7770d;
+  --radius: 10px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; overflow-x: hidden; }
+
+/* ===== HEADER ===== */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+}
+.logo { font-family: 'EB Garamond', serif; font-size: 19px; font-weight: 500; color: var(--accent); }
+.logo span { color: var(--text2); font-weight: 400; font-size: 15px; margin-left: 4px; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+  position: sticky; top: 53px; z-index: 150;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1; min-width: 72px;
+  padding: 10px 4px; text-align: center;
+  font-size: 11px; font-weight: 500; color: var(--text2);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.2s; white-space: nowrap; user-select: none;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-icon { display: block; font-size: 17px; margin-bottom: 2px; }
+
+/* ===== PANELS ===== */
+.panel { display: none; padding: 16px; animation: fadeIn 0.2s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== CARDS ===== */
+.card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 14px; overflow: hidden; }
+.card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+.card-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+.card-body { padding: 16px; }
+
+/* ===== FORMS ===== */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+  background: var(--bg); -webkit-appearance: none; transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+textarea { resize: vertical; line-height: 1.6; font-size: 14px; }
+.row { display: flex; gap: 10px; }
+.row .field { flex: 1; }
+
+/* Slider */
+input[type="range"] {
+  width: 100%; -webkit-appearance: none; height: 4px;
+  background: var(--border); border-radius: 2px; outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* Toggle */
+.toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.toggle-btn {
+  padding: 7px 13px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 13px; font-weight: 500; background: var(--surface); color: var(--text2);
+  cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.toggle-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.15s; user-select: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:active { opacity: 0.85; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:active { background: var(--border); }
+.btn-danger { background: #fdf0ef; color: var(--danger); border: 1px solid #f5c6c3; }
+.btn-full { width: 100%; }
+.btn-sm { padding: 7px 12px; font-size: 13px; border-radius: 7px; }
+.btn-xs { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+/* ===== CHAPTERS ===== */
+.chapter-list { display: flex; flex-direction: column; gap: 8px; }
+.chapter-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 13px 14px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: all 0.15s;
+}
+.chapter-item:active { background: var(--surface2); }
+.chapter-item.active-chapter { border-color: var(--accent); background: var(--accent-light); }
+.chapter-drag { color: var(--text2); font-size: 18px; cursor: grab; flex-shrink: 0; }
+.chapter-info { flex: 1; min-width: 0; }
+.chapter-name { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chapter-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.chapter-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ===== EDITOR ===== */
+.editor-header {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px;
+  margin-bottom: 12px;
+}
+.editor-title-input {
+  font-family: 'EB Garamond', serif; font-size: 20px; font-weight: 500;
+  border: none; background: transparent; width: 100%;
+  color: var(--text); padding: 0;
+}
+.editor-title-input:focus { outline: none; }
+.editor-meta { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.editor-badge { font-size: 11px; color: var(--text2); background: var(--surface2); padding: 3px 9px; border-radius: 12px; }
+
+#chapterTextarea {
+  min-height: 400px;
+  font-family: 'EB Garamond', serif;
+  font-size: 16px;
+  line-height: 1.75;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+/* ===== PREVIEW ===== */
+.preview-outer {
+  background: #7a7570;
+  border-radius: var(--radius);
+  padding: 20px 10px;
+  display: flex; justify-content: center;
+  min-height: 320px;
+  margin-bottom: 14px;
+}
+.preview-page {
+  background: #fff;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+  width: 100%; max-width: 260px;
+  position: relative; overflow: hidden;
+  transition: all 0.3s;
+}
+.preview-content {
+  position: absolute; inset: 0;
+  font-family: 'EB Garamond', serif;
+  font-size: 11px; line-height: 1.65;
+  color: #1a1916; overflow: hidden;
+  transition: all 0.3s;
+}
+.prev-chapter-title { font-size: 15px; font-weight: 600; display: block; margin-bottom: 8px; }
+.prev-page-nr { position: absolute; bottom: 8px; font-family: 'EB Garamond', serif; font-size: 10px; color: #aaa; }
+.preview-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 14px; }
+.preview-nav-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.preview-nav-info { font-size: 13px; color: var(--text2); }
+
+/* ===== EXPORT ===== */
+.export-opt {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 15px 14px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all 0.15s;
+}
+.export-opt.sel { border-color: var(--accent); background: var(--accent-light); }
+.export-opt:active { background: var(--surface2); }
+.exp-icon { font-size: 26px; flex-shrink: 0; }
+.exp-label { font-weight: 500; font-size: 14px; }
+.exp-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.exp-check { margin-left: auto; color: var(--accent); font-size: 18px; opacity: 0; transition: opacity 0.15s; }
+.export-opt.sel .exp-check { opacity: 1; }
+
+/* Checklist */
+.check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.check-item:last-child { border-bottom: none; }
+.check-icon { font-size: 15px; flex-shrink: 0; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-blue { background: var(--accent-light); color: var(--accent); }
+.badge-green { background: #e8f5ee; color: var(--success); }
+.badge-warn { background: #fef6e4; color: var(--warn); }
+
+/* Section label */
+.section-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; margin: 18px 0 10px; }
+.section-label:first-child { margin-top: 0; }
+
+/* Margin preview mini */
+.margin-preview { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; min-height: 120px; }
+.page-mock { background: #fff; border: 1.5px solid var(--border); position: relative; box-shadow: 2px 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; width: 76px; height: 108px; }
+.page-mock-inner { background: #f0eeea; position: absolute; transition: all 0.3s; }
+.page-mock-lines { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-evenly; padding: 3px; }
+.page-mock-line { height: 2px; background: #d0cdc7; border-radius: 1px; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 16px 16px 0 0; width: 100%; max-width: 480px; padding: 20px 16px 32px; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.modal-actions .btn { flex: 1; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--text); color: #fff;
+  padding: 11px 22px; border-radius: 24px;
+  font-size: 13px; font-weight: 500; z-index: 999;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.safe { height: 28px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">Buchsatz <span>Studio Pro</span></div>
+  <div class="header-right">
+    <span class="badge badge-green" id="saveIndicator">● Gespeichert</span>
+    <button class="btn btn-secondary btn-sm" onclick="saveAll()">Speichern</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('chapters',this)"><span class="tab-icon">📚</span>Kapitel</div>
+  <div class="tab" onclick="switchTab('editor',this)"><span class="tab-icon">✍️</span>Editor</div>
+  <div class="tab" onclick="switchTab('layout',this)"><span class="tab-icon">📐</span>Layout</div>
+  <div class="tab" onclick="switchTab('preview',this)"><span class="tab-icon">👁</span>Vorschau</div>
+  <div class="tab" onclick="switchTab('export',this)"><span class="tab-icon">📤</span>Export</div>
+</div>
+
+<!-- ===== KAPITEL PANEL ===== -->
+<div class="panel active" id="panel-chapters">
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-body" style="padding:12px 14px;">
+      <div class="field" style="margin-bottom:10px;">
+        <label>Buchtitel</label>
+        <input type="text" id="bookTitle" placeholder="z.B. Gefährtin der Macht" oninput="markUnsaved()">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Autorin</label>
+          <input type="text" id="bookAuthor" placeholder="Katharina Winterfeld" oninput="markUnsaved()">
+        </div>
+        <div class="field">
+          <label>Band</label>
+          <input type="text" id="bookVolume" placeholder="Band 1" oninput="markUnsaved()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Kapitelstruktur</div>
+
+  <div class="chapter-list" id="chapterList"></div>
+
+  <button class="btn btn-secondary btn-full" style="margin-top:10px" onclick="addChapter()">
+    + Neues Kapitel
+  </button>
+
+  <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="addFrontmatter()">
+    + Titelei / Impressum / Widmung
+  </button>
+
+  <div id="statsCard" class="card" style="margin-top:16px;">
+    <div class="card-header"><span class="card-title">Buchstatistik</span></div>
+    <div class="card-body" id="statsBody"></div>
+  </div>
+
+  <div class="safe"></div>
+</div>
+
+<!-- ===== EDITOR PANEL ===== -->
+<div class="panel" id="panel-editor">
+  <div class="editor-header">
+    <input class="editor-title-input" id="editorTitle" type="text" placeholder="Kapiteltitel..." oninput="syncChapterTitle()">
+    <div class="editor-meta">
+      <span class="editor-badge" id="editorWordCount">0 Wörter</span>
+      <span class="editor-badge" id="editorCharCount">0 Zeichen</span>
+      <span class="editor-badge" id="editorPageEst">~0 Seiten</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+    <button class="btn btn-secondary btn-sm" onclick="insertText('*kursiv*','kursiv')">Kursiv</button>
+    <button class="btn btn-secondary btn-sm" onclick="insertBreak()">Szenentrenner</button>
+    <button class="btn btn-secondary btn-sm" onclick="insertChapterMark()">Kapitelanfang ¶</button>
+    <button class="btn btn-secondary btn-sm" onclick="showChapterSelect()">Kapitel wechseln ▾</button>
+  </div>
+
+  <textarea id="chapterTextarea" placeholder="Hier deinen Kapiteltext eingeben oder einfügen…" oninput="onTextInput()"></textarea>
+
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button class="btn btn-primary" style="flex:1" onclick="saveCurrentChapter()">Kapitel speichern</button>
+    <button class="btn btn-secondary btn-sm" onclick="switchTab('preview', document.querySelectorAll('.tab')[3])">Vorschau</button>
+  </div>
+
+  <div class="safe"></div>
+</div>
+
+<!-- ===== LAYOUT PANEL ===== -->
+<div class="panel" id="panel-layout">
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Buchformat</span>
+      <span class="badge badge-blue">KDP</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Voreinstellung</label>
+        <select onchange="applyPreset(this.value)" id="presetSelect">
+          <option value="us_trade" selected>US Trade 15,2 × 22,9 cm – KDP Standard</option>
+          <option value="pocket">Taschenbuch 12,7 × 20,3 cm</option>
+          <option value="a5">A5 14,8 × 21,0 cm</option>
+          <option value="digest">Digest 15,2 × 22,9 cm</option>
+          <option value="a4">A4 21,0 × 29,7 cm</option>
+          <option value="custom">Benutzerdefiniert</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="field"><label>Breite (mm)</label><input type="number" id="pgW" value="152" min="80" max="280" oninput="updateAll()"></div>
+        <div class="field"><label>Höhe (mm)</label><input type="number" id="pgH" value="229" min="120" max="400" oninput="updateAll()"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Seitenränder</span></div>
+    <div class="card-body">
+      <div class="margin-preview">
+        <div class="page-mock" id="pageMock">
+          <div class="page-mock-inner" id="pageInner">
+            <div class="page-mock-lines">
+              <div class="page-mock-line"></div><div class="page-mock-line"></div>
+              <div class="page-mock-line"></div><div class="page-mock-line"></div>
+              <div class="page-mock-line"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>Oben (mm) – <span id="vMT" style="color:var(--accent)">20</span></label><input type="range" id="mTop" min="5" max="40" value="20" oninput="syncM('MT',this.value);updateAll()"></div>
+      <div class="field"><label>Unten (mm) – <span id="vMB" style="color:var(--accent)">20</span></label><input type="range" id="mBot" min="5" max="40" value="20" oninput="syncM('MB',this.value);updateAll()"></div>
+      <div class="field"><label>Bund/Innen (mm) – <span id="vMI" style="color:var(--accent)">22</span></label><input type="range" id="mInn" min="8" max="45" value="22" oninput="syncM('MI',this.value);updateAll()"></div>
+      <div class="field"><label>Außen (mm) – <span id="vMO" style="color:var(--accent)">15</span></label><input type="range" id="mOut" min="5" max="35" value="15" oninput="syncM('MO',this.value);updateAll()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Schrift & Satz</span></div>
+    <div class="card-body">
+      <div class="field">
+        <label>Schriftart</label>
+        <select id="bodyFont" onchange="updateAll()">
+          <option value="EB Garamond" selected>EB Garamond (Empfehlung)</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Palatino">Palatino</option>
+          <option value="Times New Roman">Times New Roman</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="field"><label>Größe – <span id="vFS" style="color:var(--accent)">11pt</span></label><input type="range" id="fontSize" min="9" max="14" value="11" oninput="syncV('FS',this.value,'pt');updateAll()"></div>
+        <div class="field"><label>Abstand – <span id="vLH" style="color:var(--accent)">1.5×</span></label><input type="range" id="lineH" min="120" max="200" step="5" value="150" oninput="syncV('LH',(this.value/100).toFixed(2),'×');updateAll()"></div>
+      </div>
+      <div class="field">
+        <label>Ausrichtung</label>
+        <div class="toggle-group" id="align-grp">
+          <div class="toggle-btn active" onclick="tog1('align-grp',this);updateAll()">Blocksatz</div>
+          <div class="toggle-btn" onclick="tog1('align-grp',this);updateAll()">Links</div>
+          <div class="toggle-btn" onclick="tog1('align-grp',this);updateAll()">Zentriert</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Absätze</label>
+        <div class="toggle-group" id="para-grp">
+          <div class="toggle-btn active" onclick="tog1('para-grp',this)">Einzug</div>
+          <div class="toggle-btn" onclick="tog1('para-grp',this)">Abstandszeile</div>
+          <div class="toggle-btn" onclick="tog1('para-grp',this)">Beides</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Kapitelüberschriften</span></div>
+    <div class="card-body">
+      <div class="field"><label>Schriftart Überschriften</label>
+        <select id="headFont" onchange="updateAll()">
+          <option value="EB Garamond" selected>EB Garamond</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Palatino">Palatino</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="field"><label>Größe – <span id="vHS" style="color:var(--accent)">18pt</span></label><input type="range" id="headSize" min="12" max="36" value="18" oninput="syncV('HS',this.value,'pt')"></div>
+        <div class="field"><label>Abstand oben – <span id="vCS" style="color:var(--accent)">40mm</span></label><input type="range" id="chSpace" min="0" max="80" value="40" oninput="syncV('CS',this.value,'mm')"></div>
+      </div>
+      <div class="field">
+        <label>Seitenzahlen</label>
+        <div class="toggle-group" id="pn-grp">
+          <div class="toggle-btn active" onclick="tog1('pn-grp',this)">Außen</div>
+          <div class="toggle-btn" onclick="tog1('pn-grp',this)">Mitte</div>
+          <div class="toggle-btn" onclick="tog1('pn-grp',this)">Innen</div>
+          <div class="toggle-btn" onclick="tog1('pn-grp',this)">Keine</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="safe"></div>
+</div>
+
+<!-- ===== VORSCHAU PANEL ===== -->
+<div class="panel" id="panel-preview">
+  <div class="preview-nav">
+    <button class="preview-nav-btn" onclick="prevChapterPreview()">← Vorher</button>
+    <span class="preview-nav-info" id="prevNavInfo">Kapitel 1 / 1</span>
+    <button class="preview-nav-btn" onclick="nextChapterPreview()">Weiter →</button>
+  </div>
+  <div class="preview-outer">
+    <div class="preview-page" id="prevPage">
+      <div class="preview-content" id="prevContent"></div>
+      <div class="prev-page-nr" id="prevPgNr" style="right:10px;bottom:8px">1</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="padding:12px 14px;">
+      <p style="font-size:13px;color:var(--text2);line-height:1.5">Die Vorschau zeigt das aktuelle Kapitel mit deinen Layout-Einstellungen. Alle Änderungen im Layout-Tab wirken sich sofort aus.</p>
+    </div>
+  </div>
+  <div class="safe"></div>
+</div>
+
+<!-- ===== EXPORT PANEL ===== -->
+<div class="panel" id="panel-export">
+
+  <div class="section-label">Format wählen</div>
+
+  <div class="export-opt sel" id="exp-epub" onclick="selExp('epub')">
+    <div class="exp-icon">📗</div>
+    <div><div class="exp-label">EPUB 3</div><div class="exp-desc">Kindle Unlimited & KDP · alle Kapitel · vollständig</div></div>
+    <div class="exp-check">✓</div>
+  </div>
+  <div class="export-opt" id="exp-pdf" onclick="selExp('pdf')">
+    <div class="exp-icon">📄</div>
+    <div><div class="exp-label">CSS-Stylesheet (Druck-PDF)</div><div class="exp-desc">Für InDesign, Affinity, LibreOffice</div></div>
+    <div class="exp-check">✓</div>
+  </div>
+  <div class="export-opt" id="exp-html" onclick="selExp('html')">
+    <div class="exp-icon">🌐</div>
+    <div><div class="exp-label">HTML (vollständiges Buch)</div><div class="exp-desc">Browser-Leseansicht oder Weiterverarbeitung</div></div>
+    <div class="exp-check">✓</div>
+  </div>
+
+  <div class="section-label">Metadaten</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="field"><label>Titel</label><input type="text" id="metaTitle" placeholder="Buchtitel"></div>
+      <div class="field"><label>Autorin</label><input type="text" id="metaAuthor" placeholder="Katharina Winterfeld"></div>
+      <div class="row">
+        <div class="field"><label>Sprache</label>
+          <select id="metaLang"><option value="de" selected>Deutsch</option><option value="en">Englisch</option></select>
+        </div>
+        <div class="field"><label>Jahr</label><input type="number" id="metaYear" value="2025"></div>
+      </div>
+      <div class="field"><label>ISBN (optional)</label><input type="text" id="metaISBN" placeholder="978-3-..."></div>
+      <div class="field"><label>Kurzbeschreibung</label><textarea id="metaDesc" style="min-height:70px" placeholder="Klappentextzeile für Metadaten..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="section-label">KDP-Checkliste</div>
+  <div class="card"><div class="card-body" id="kdpChecklist"></div></div>
+
+  <button class="btn btn-primary btn-full" style="margin-top:6px" onclick="doExport()">📤 &nbsp;Jetzt exportieren</button>
+
+  <div class="safe"></div>
+</div>
+
+<!-- CHAPTER SELECT MODAL -->
+<div class="modal-overlay" id="chapterSelectModal">
+  <div class="modal">
+    <div class="modal-title">Kapitel wechseln</div>
+    <div id="modalChapterList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FRONTMATTER MODAL -->
+<div class="modal-overlay" id="fmModal">
+  <div class="modal">
+    <div class="modal-title">Titelei hinzufügen</div>
+    <div style="display:flex;flex-direction:column;gap:8px;" id="fmOptions">
+      <button class="btn btn-secondary" onclick="addSpecialChapter('Titelseite')">Titelseite</button>
+      <button class="btn btn-secondary" onclick="addSpecialChapter('Impressum')">Impressum</button>
+      <button class="btn btn-secondary" onclick="addSpecialChapter('Widmung')">Widmung</button>
+      <button class="btn btn-secondary" onclick="addSpecialChapter('Inhaltsverzeichnis')">Inhaltsverzeichnis (auto)</button>
+      <button class="btn btn-secondary" onclick="addSpecialChapter('Prolog')">Prolog</button>
+      <button class="btn btn-secondary" onclick="addSpecialChapter('Epilog')">Epilog</button>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('fmModal')">Abbrechen</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let state = {
+  chapters: [],
+  currentChapterIdx: 0,
+  previewChapterIdx: 0,
+  layout: {
+    pgW: 152, pgH: 229,
+    mTop: 20, mBot: 20, mInn: 22, mOut: 15,
+    fontSize: 11, lineH: 1.5,
+    bodyFont: 'EB Garamond', headFont: 'EB Garamond',
+    headSize: 18, chSpace: 40,
+    align: 'justify', para: 'indent',
+    pnPos: 'outer'
+  },
+  meta: { title: '', author: '', volume: '', lang: 'de', year: '2025', isbn: '', desc: '' },
+  saved: true
+};
+
+// ===== INIT =====
+function init() {
+  loadFromStorage();
+  if (state.chapters.length === 0) {
+    state.chapters = [
+      { id: uid(), title: 'Kapitel 1', text: '', type: 'chapter' }
+    ];
+  }
+  renderChapterList();
+  updateStats();
+  renderKdpChecklist();
+  updateAll();
+  syncMetaFields();
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ===== STORAGE =====
+function saveAll() {
+  collectMeta();
+  try {
+    localStorage.setItem('buchsatz_pro_v2', JSON.stringify(state));
+    document.getElementById('saveIndicator').textContent = '● Gespeichert';
+    document.getElementById('saveIndicator').className = 'badge badge-green';
+    state.saved = true;
+  } catch(e) {
+    showToast('Speichern fehlgeschlagen');
+  }
+  showToast('Gespeichert ✓');
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem('buchsatz_pro_v2');
+    if (raw) { const s = JSON.parse(raw); Object.assign(state, s); applyLayoutToUI(); }
+  } catch(e) {}
+}
+
+function markUnsaved() {
+  state.saved = false;
+  document.getElementById('saveIndicator').textContent = '● Ungespeichert';
+  document.getElementById('saveIndicator').className = 'badge badge-warn';
+}
+
+function collectMeta() {
+  state.meta.title  = document.getElementById('bookTitle').value || document.getElementById('metaTitle').value;
+  state.meta.author = document.getElementById('bookAuthor').value || document.getElementById('metaAuthor').value;
+  state.meta.volume = document.getElementById('bookVolume').value;
+  state.meta.lang   = document.getElementById('metaLang').value;
+  state.meta.year   = document.getElementById('metaYear').value;
+  state.meta.isbn   = document.getElementById('metaISBN').value;
+  state.meta.desc   = document.getElementById('metaDesc').value;
+}
+
+function syncMetaFields() {
+  document.getElementById('bookTitle').value  = state.meta.title;
+  document.getElementById('bookAuthor').value = state.meta.author;
+  document.getElementById('bookVolume').value = state.meta.volume;
+  document.getElementById('metaTitle').value  = state.meta.title;
+  document.getElementById('metaAuthor').value = state.meta.author;
+  document.getElementById('metaLang').value   = state.meta.lang;
+  document.getElementById('metaYear').value   = state.meta.year;
+  document.getElementById('metaISBN').value   = state.meta.isbn;
+  document.getElementById('metaDesc').value   = state.meta.desc;
+}
+
+// ===== CHAPTER MANAGEMENT =====
+function renderChapterList() {
+  const list = document.getElementById('chapterList');
+  list.innerHTML = '';
+  state.chapters.forEach((ch, i) => {
+    const words = countWords(ch.text);
+    const div = document.createElement('div');
+    div.className = 'chapter-item' + (i === state.currentChapterIdx ? ' active-chapter' : '');
+    div.innerHTML = `
+      <div class="chapter-drag">☰</div>
+      <div class="chapter-info" onclick="openChapter(${i})">
+        <div class="chapter-name">${ch.title || 'Ohne Titel'}</div>
+        <div class="chapter-meta">${words} Wörter · ${ch.type === 'chapter' ? 'Kapitel' : ch.type}</div>
+      </div>
+      <div class="chapter-actions">
+        <button class="btn btn-secondary btn-xs" onclick="openChapter(${i})">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteChapter(${i})">✕</button>
+      </div>`;
+    list.appendChild(div);
+  });
+  updateStats();
+}
+
+function addChapter() {
+  const n = state.chapters.filter(c => c.type === 'chapter').length + 1;
+  state.chapters.push({ id: uid(), title: `Kapitel ${n}`, text: '', type: 'chapter' });
+  renderChapterList();
+  openChapter(state.chapters.length - 1);
+  switchTab('editor', document.querySelectorAll('.tab')[1]);
+  markUnsaved();
+}
+
+function addFrontmatter() {
+  document.getElementById('fmModal').classList.add('open');
+}
+
+function addSpecialChapter(type) {
+  const templates = {
+    'Titelseite': `${state.meta.title || 'Mein Buch'}\n\n${state.meta.author || 'Autorin'}\n\n${state.meta.volume || ''}`,
+    'Impressum': `© ${state.meta.year || new Date().getFullYear()} ${state.meta.author || 'Autorin'}\n\nAlle Rechte vorbehalten.\n\nISBN: ${state.meta.isbn || '—'}\n\nPubliziert über KDP`,
+    'Widmung': `Für ...`,
+    'Inhaltsverzeichnis': state.chapters.filter(c=>c.type==='chapter').map((c,i)=>`${c.title} ......... ${i+1}`).join('\n') || 'Wird beim Export automatisch erstellt.',
+    'Prolog': '',
+    'Epilog': ''
+  };
+  state.chapters.unshift({ id: uid(), title: type, text: templates[type] || '', type: type.toLowerCase() });
+  closeModal('fmModal');
+  renderChapterList();
+  openChapter(0);
+  switchTab('editor', document.querySelectorAll('.tab')[1]);
+  markUnsaved();
+}
+
+function openChapter(i) {
+  saveCurrentChapter();
+  state.currentChapterIdx = i;
+  state.previewChapterIdx = i;
+  const ch = state.chapters[i];
+  document.getElementById('editorTitle').value = ch.title;
+  document.getElementById('chapterTextarea').value = ch.text;
+  updateEditorStats();
+  renderChapterList();
+  updatePreviewContent();
+}
+
+function deleteChapter(i) {
+  if (state.chapters.length <= 1) { showToast('Mindestens ein Kapitel erforderlich'); return; }
+  const ch = state.chapters[i];
+  showConfirm(`„${ch.title}" wirklich löschen?`, () => {
+    state.chapters.splice(i, 1);
+    if (state.currentChapterIdx >= state.chapters.length) state.currentChapterIdx = state.chapters.length - 1;
+    renderChapterList();
+    openChapter(state.currentChapterIdx);
+    markUnsaved();
+    showToast('Kapitel gelöscht');
+  });
+}
+
+function showConfirm(msg, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML = `<div style="background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px 16px 32px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:16px">${msg}</div>
+    <div style="display:flex;gap:10px">
+      <button id="confirmNo" style="flex:1;padding:12px;border-radius:8px;border:1px solid #ddd;background:#f0eeea;font-size:14px;font-weight:500;cursor:pointer">Abbrechen</button>
+      <button id="confirmYes" style="flex:1;padding:12px;border-radius:8px;border:none;background:#c0392b;color:#fff;font-size:14px;font-weight:500;cursor:pointer">Löschen</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#confirmNo').onclick = () => document.body.removeChild(overlay);
+  overlay.querySelector('#confirmYes').onclick = () => { document.body.removeChild(overlay); onConfirm(); };
+}
+
+function saveCurrentChapter() {
+  const ch = state.chapters[state.currentChapterIdx];
+  if (!ch) return;
+  ch.title = document.getElementById('editorTitle').value || ch.title;
+  ch.text  = document.getElementById('chapterTextarea').value;
+  markUnsaved();
+}
+
+function syncChapterTitle() {
+  state.chapters[state.currentChapterIdx].title = document.getElementById('editorTitle').value;
+  renderChapterList();
+  markUnsaved();
+}
+
+// ===== EDITOR =====
+function onTextInput() {
+  state.chapters[state.currentChapterIdx].text = document.getElementById('chapterTextarea').value;
+  updateEditorStats();
+  markUnsaved();
+}
+
+function updateEditorStats() {
+  const text = document.getElementById('chapterTextarea').value;
+  const words = countWords(text);
+  const chars = text.length;
+  const pages = Math.max(1, Math.round(words / 280));
+  document.getElementById('editorWordCount').textContent = words + ' Wörter';
+  document.getElementById('editorCharCount').textContent = chars.toLocaleString('de') + ' Zeichen';
+  document.getElementById('editorPageEst').textContent = '~' + pages + ' Seiten';
+}
+
+function countWords(text) {
+  if (!text || !text.trim()) return 0;
+  return text.trim().split(/\s+/).filter(w=>w.length>0).length;
+}
+
+function insertText(before, label) {
+  const ta = document.getElementById('chapterTextarea');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const sel = ta.value.substring(start, end) || label;
+  ta.value = ta.value.substring(0, start) + before.replace(label, sel) + ta.value.substring(end);
+  onTextInput();
+}
+
+function insertBreak() {
+  const ta = document.getElementById('chapterTextarea');
+  const pos = ta.selectionStart;
+  const br = '\n\n* * *\n\n';
+  ta.value = ta.value.substring(0, pos) + br + ta.value.substring(pos);
+  ta.selectionStart = ta.selectionEnd = pos + br.length;
+  onTextInput();
+}
+
+function insertChapterMark() {
+  const ta = document.getElementById('chapterTextarea');
+  const pos = ta.selectionStart;
+  ta.value = ta.value.substring(0, pos) + '\n\n' + ta.value.substring(pos);
+  onTextInput();
+}
+
+function showChapterSelect() {
+  const list = document.getElementById('modalChapterList');
+  list.innerHTML = '';
+  state.chapters.forEach((ch, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-secondary btn-full';
+    btn.style.textAlign = 'left';
+    btn.textContent = ch.title;
+    btn.onclick = () => { saveCurrentChapter(); openChapter(i); closeModal(); };
+    list.appendChild(btn);
+  });
+  document.getElementById('chapterSelectModal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+}
+
+// ===== LAYOUT =====
+function syncM(key, val) { document.getElementById('v'+key).textContent = val; state.layout['m'+key.slice(1)] = parseInt(val); updateMockMargins(); }
+function syncV(key, val, unit) { document.getElementById('v'+key).textContent = val + unit; }
+function tog1(groupId, el) { document.querySelectorAll('#'+groupId+' .toggle-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+
+function applyPreset(val) {
+  const p = { us_trade:[152,229], pocket:[127,203], a5:[148,210], digest:[152,229], a4:[210,297] };
+  if (p[val]) {
+    document.getElementById('pgW').value = p[val][0];
+    document.getElementById('pgH').value = p[val][1];
+    updateAll();
+  }
+}
+
+function applyLayoutToUI() {
+  const l = state.layout;
+  document.getElementById('pgW').value = l.pgW;
+  document.getElementById('pgH').value = l.pgH;
+  document.getElementById('mTop').value = l.mTop; document.getElementById('vMT').textContent = l.mTop;
+  document.getElementById('mBot').value = l.mBot; document.getElementById('vMB').textContent = l.mBot;
+  document.getElementById('mInn').value = l.mInn; document.getElementById('vMI').textContent = l.mInn;
+  document.getElementById('mOut').value = l.mOut; document.getElementById('vMO').textContent = l.mOut;
+  document.getElementById('fontSize').value = l.fontSize; document.getElementById('vFS').textContent = l.fontSize+'pt';
+  document.getElementById('lineH').value = Math.round(l.lineH*100); document.getElementById('vLH').textContent = l.lineH+'×';
+}
+
+function collectLayout() {
+  state.layout.pgW = parseInt(document.getElementById('pgW').value);
+  state.layout.pgH = parseInt(document.getElementById('pgH').value);
+  state.layout.mTop = parseInt(document.getElementById('mTop').value);
+  state.layout.mBot = parseInt(document.getElementById('mBot').value);
+  state.layout.mInn = parseInt(document.getElementById('mInn').value);
+  state.layout.mOut = parseInt(document.getElementById('mOut').value);
+  state.layout.fontSize = parseInt(document.getElementById('fontSize').value);
+  state.layout.lineH = parseInt(document.getElementById('lineH').value)/100;
+  state.layout.bodyFont = document.getElementById('bodyFont').value;
+  state.layout.headFont = document.getElementById('headFont').value;
+  state.layout.headSize = parseInt(document.getElementById('headSize').value);
+  state.layout.chSpace  = parseInt(document.getElementById('chSpace').value);
+  const aBtn = document.querySelector('#align-grp .toggle-btn.active');
+  state.layout.align = aBtn ? {Blocksatz:'justify',Links:'left',Zentriert:'center'}[aBtn.textContent] || 'justify' : 'justify';
+}
+
+function updateMockMargins() {
+  const l = state.layout;
+  const sc = 76/l.pgW;
+  const inner = document.getElementById('pageInner');
+  inner.style.top    = (l.mTop*sc)+'px';
+  inner.style.bottom = (l.mBot*sc)+'px';
+  inner.style.left   = (l.mInn*sc)+'px';
+  inner.style.right  = (l.mOut*sc)+'px';
+}
+
+function updateAll() {
+  collectLayout();
+  updateMockMargins();
+  updatePreviewContent();
+}
+
+// ===== PREVIEW =====
+function updatePreviewContent() {
+  collectLayout();
+  const l = state.layout;
+  const ch = state.chapters[state.previewChapterIdx];
+  if (!ch) return;
+  const scale = 260/l.pgW;
+  const ph = Math.round(l.pgH * scale);
+  const page = document.getElementById('prevPage');
+  page.style.minHeight = ph+'px';
+  const content = document.getElementById('prevContent');
+  content.style.top    = Math.round(l.mTop*scale)+'px';
+  content.style.bottom = Math.round(l.mBot*scale)+'px';
+  content.style.left   = Math.round(l.mInn*scale)+'px';
+  content.style.right  = Math.round(l.mOut*scale)+'px';
+  const scaledFontSize = Math.max(8, Math.round(l.fontSize * scale * 0.72));
+  content.style.fontSize = scaledFontSize+'px';
+  content.style.lineHeight = l.lineH;
+  content.style.fontFamily = `'${l.bodyFont}', Georgia, serif`;
+  content.style.textAlign = l.align;
+  const scaledHeadSize = Math.max(10, Math.round(l.headSize * scale * 0.72));
+  const title = ch.title ? `<span class="prev-chapter-title" style="font-family:'${l.headFont}',Georgia,serif;font-size:${scaledHeadSize}px;font-weight:bold;display:block;text-align:center;margin-bottom:8px">${ch.title}</span>` : '';
+  const body = (ch.text || '').slice(0, 800)
+    .replace(/\* \* \*/g,'<div style="text-align:center;margin:4px 0">* * *</div>')
+    .replace(/\n\n/g,'</p><p style="text-indent:1.2em;margin:0">')
+    .replace(/\n/g,' ');
+  content.innerHTML = title + '<p style="text-indent:0;margin:0">' + body + (ch.text && ch.text.length > 800 ? '…' : '') + '</p>';
+  const pageNr = document.getElementById('prevPgNr');
+  pageNr.style.right = Math.round(l.mOut*scale)+'px';
+  pageNr.style.left  = 'auto';
+  document.getElementById('prevNavInfo').textContent = `${state.previewChapterIdx+1} / ${state.chapters.length}`;
+}
+
+function prevChapterPreview() {
+  if (state.previewChapterIdx > 0) { state.previewChapterIdx--; updatePreviewContent(); }
+}
+function nextChapterPreview() {
+  if (state.previewChapterIdx < state.chapters.length-1) { state.previewChapterIdx++; updatePreviewContent(); }
+}
+
+// ===== STATS =====
+function updateStats() {
+  const totalWords = state.chapters.reduce((s,c) => s + countWords(c.text), 0);
+  const totalChars = state.chapters.reduce((s,c) => s + c.text.length, 0);
+  const estPages = Math.max(1, Math.round(totalWords / 280));
+  document.getElementById('statsBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="text-align:center;padding:10px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:'EB Garamond',serif">${totalWords.toLocaleString('de')}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Wörter gesamt</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:'EB Garamond',serif">${estPages}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">ca. Seiten</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:'EB Garamond',serif">${state.chapters.length}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Kapitel</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:'EB Garamond',serif">${totalChars.toLocaleString('de')}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Zeichen</div>
+      </div>
+    </div>`;
+}
+
+// ===== KDP CHECKLIST =====
+function renderKdpChecklist() {
+  const l = state.layout;
+  const checks = [
+    { label: 'Seitenrand außen ≥ 6mm', ok: l.mOut >= 6 },
+    { label: 'Bund ≥ 18mm', ok: l.mInn >= 18 },
+    { label: 'Schriftgröße 9–12pt', ok: l.fontSize >= 9 && l.fontSize <= 12 },
+    { label: 'Zeilenabstand 1.2–1.6×', ok: l.lineH >= 1.2 && l.lineH <= 1.6 },
+    { label: 'Metadaten vorhanden', ok: !!(state.meta.title && state.meta.author) },
+    { label: 'Mindestens 1 Kapitel mit Inhalt', ok: state.chapters.some(c=>c.text.length > 10) },
+  ];
+  document.getElementById('kdpChecklist').innerHTML = checks.map(c =>
+    `<div class="check-item"><span class="check-icon">${c.ok ? '✅' : '⚠️'}</span><span style="color:${c.ok?'var(--text)':'var(--warn)'}">${c.label}</span></div>`
+  ).join('');
+}
+
+// ===== EXPORT =====
+let selectedExport = 'epub';
+function selExp(id) {
+  document.querySelectorAll('.export-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('exp-'+id).classList.add('sel');
+  selectedExport = id;
+}
+
+function doExport() {
+  collectMeta();
+  collectLayout();
+  renderKdpChecklist();
+  const title = state.meta.title || 'Mein Buch';
+  const author = state.meta.author || 'Autorin';
+  if (selectedExport === 'epub') exportEPUB(title, author);
+  else if (selectedExport === 'html') exportHTML(title, author);
+  else exportCSS(title, author);
+}
+
+function buildCSS() {
+  const l = state.layout;
+  const alignMap = { justify: 'justify', left: 'left', center: 'center' };
+  return `/* Buchsatz Studio Pro – Stylesheet
+   Titel: ${state.meta.title || 'Mein Buch'}
+   Autorin: ${state.meta.author || ''}
+   Format: ${l.pgW}mm × ${l.pgH}mm */
+
+@page {
+  size: ${l.pgW}mm ${l.pgH}mm;
+  margin-top: ${l.mTop}mm;
+  margin-bottom: ${l.mBot}mm;
+  margin-inside: ${l.mInn}mm;
+  margin-outside: ${l.mOut}mm;
+}
+
+body {
+  font-family: "${l.bodyFont}", Georgia, serif;
+  font-size: ${l.fontSize}pt;
+  line-height: ${l.lineH};
+  text-align: ${alignMap[l.align] || 'justify'};
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  orphans: 2;
+  widows: 2;
+}
+
+h1, h2 {
+  font-family: "${l.headFont}", Georgia, serif;
+  font-size: ${l.headSize}pt;
+  font-weight: bold;
+  text-align: center;
+  margin-top: ${l.chSpace}mm;
+  margin-bottom: 8mm;
+  page-break-before: always;
+}
+
+p {
+  margin: 0;
+  text-indent: 1.2em;
+}
+
+p:first-of-type,
+h1 + p, h2 + p {
+  text-indent: 0;
+}
+
+.scene-break {
+  text-align: center;
+  margin: 6mm 0;
+  letter-spacing: 0.5em;
+}`;
+}
+
+function exportCSS(title, author) {
+  const css = buildCSS();
+  const blob = new Blob([css], { type: 'text/css' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = sanitize(title) + '_stylesheet.css'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSS-Stylesheet exportiert ✓');
+}
+
+function exportHTML(title, author) {
+  const l = state.layout;
+  const css = buildCSS();
+  const chapters = state.chapters.map((ch, i) => {
+    const body = textToHTML(ch.text);
+    return `<section id="ch${i}" class="chapter">
+  <h1>${escapeHtml(ch.title)}</h1>
+  ${body}
+</section>`;
+  }).join('\n\n');
+
+  const toc = state.chapters.map((ch, i) =>
+    `  <li><a href="#ch${i}">${escapeHtml(ch.title)}</a></li>`
+  ).join('\n');
+
+  const html = `<!DOCTYPE html>
+<html lang="${state.meta.lang || 'de'}">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(title)}</title>
+<meta name="author" content="${escapeHtml(author)}">
+<style>
+${css}
+body { max-width: ${l.pgW}mm; margin: 0 auto; padding: ${l.mTop}mm ${l.mOut}mm ${l.mBot}mm ${l.mInn}mm; }
+nav { margin-bottom: 20mm; }
+nav ol { padding-left: 1.5em; }
+nav a { color: inherit; text-decoration: none; }
+</style>
+</head>
+<body>
+<nav>
+<h2 style="margin-top:0">Inhalt</h2>
+<ol>
+${toc}
+</ol>
+</nav>
+${chapters}
+</body>
+</html>`;
+
+  download(html, sanitize(title) + '_buch.html', 'text/html');
+  showToast('HTML-Buch exportiert ✓');
+}
+
+function exportEPUB(title, author) {
+  // EPUB 3 is a ZIP — we generate the XHTML + OPF + NCX as a single downloadable package
+  // Since we can't ZIP in pure JS without a library, we export the content XHTML + OPF separately
+  // and also produce a complete single-file HTML fallback plus instructions
+
+  const l = state.layout;
+  const lang = state.meta.lang || 'de';
+  const year = state.meta.year || new Date().getFullYear();
+  const isbn = state.meta.isbn || '';
+  const uid_val = 'bsp-' + Date.now();
+
+  // CSS
+  const css = `body {
+  font-family: "${l.bodyFont}", Georgia, serif;
+  font-size: ${l.fontSize}pt;
+  line-height: ${l.lineH};
+  text-align: ${l.align === 'justify' ? 'justify' : l.align};
+  margin: 0; padding: 0;
+}
+h1 {
+  font-family: "${l.headFont}", Georgia, serif;
+  font-size: ${l.headSize}pt;
+  font-weight: bold;
+  text-align: center;
+  margin-top: ${l.chSpace}mm;
+  margin-bottom: 8mm;
+}
+p { margin: 0 0 0.8em 0; text-indent: 0; }
+p:first-of-type { text-indent: 0; }
+.scene-break { text-align: center; margin: 1em 0; }`;
+
+  // Chapter XHTMLs
+  const chapterFiles = state.chapters.map((ch, i) => {
+    const body = textToHTML(ch.text);
+    return {
+      id: `chapter${i+1}`,
+      filename: `chapter${String(i+1).padStart(3,'0')}.xhtml`,
+      title: ch.title,
+      content: `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <title>${escapeHtml(ch.title)}</title>
+  <link rel="stylesheet" type="text/css" href="styles.css"/>
+</head>
+<body>
+<h1>${escapeHtml(ch.title)}</h1>
+${body}
+</body>
+</html>`
+    };
+  });
+
+  // OPF (package document)
+  const manifest = chapterFiles.map(c =>
+    `    <item id="${c.id}" href="${c.filename}" media-type="application/xhtml+xml"/>`
+  ).join('\n');
+  const spine = chapterFiles.map(c =>
+    `    <itemref idref="${c.id}"/>`
+  ).join('\n');
+
+  const opf = `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="uid">${isbn || uid_val}</dc:identifier>
+    <dc:title>${escapeHtml(title)}</dc:title>
+    <dc:creator>${escapeHtml(author)}</dc:creator>
+    <dc:language>${lang}</dc:language>
+    <dc:date>${year}</dc:date>
+    <meta property="dcterms:modified">${new Date().toISOString().slice(0,19)}Z</meta>
+  </metadata>
+  <manifest>
+    <item id="css" href="styles.css" media-type="text/css"/>
+${manifest}
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+  </manifest>
+  <spine toc="ncx">
+${spine}
+  </spine>
+</package>`;
+
+  // NCX
+  const navPoints = chapterFiles.map((c,i) => `
+  <navPoint id="nav${i+1}" playOrder="${i+1}">
+    <navLabel><text>${escapeHtml(c.title)}</text></navLabel>
+    <content src="${c.filename}"/>
+  </navPoint>`).join('');
+  const ncx = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head><meta name="dtb:uid" content="${isbn || uid_val}"/></head>
+  <docTitle><text>${escapeHtml(title)}</text></docTitle>
+  <navMap>${navPoints}
+  </navMap>
+</ncx>`;
+
+  // Download all files
+  const files = [
+    { name: sanitize(title) + '_content.opf', content: opf, type: 'application/oebps-package+xml' },
+    { name: 'styles.css', content: css, type: 'text/css' },
+    { name: 'toc.ncx', content: ncx, type: 'application/x-dtbncx+xml' },
+    ...chapterFiles.map(c => ({ name: c.filename, content: c.content, type: 'application/xhtml+xml' }))
+  ];
+
+  // Download one by one with small delays
+  files.forEach((f, i) => {
+    setTimeout(() => {
+      download(f.content, f.name, f.type);
+    }, i * 300);
+  });
+
+  showToast(`${files.length} EPUB-Dateien werden heruntergeladen ✓`);
+
+  // Also show instructions
+  setTimeout(() => {
+    alert(`EPUB-Export abgeschlossen!\n\n${files.length} Dateien heruntergeladen:\n– .opf (Paketdatei)\n– styles.css\n– toc.ncx\n– ${chapterFiles.length} Kapitel-XHTML\n\nUm eine echte .epub-Datei zu erstellen:\n1. Alle Dateien in einen Ordner legen\n2. Mit Calibre oder Sigil zu .epub zusammenführen\n3. Oder: Sigil → Datei → EPUB öffnen → Dateien importieren`);
+  }, files.length * 300 + 200);
+}
+
+// ===== HELPERS =====
+function textToHTML(text) {
+  if (!text) return '<p></p>';
+  return text.split(/\n\n+/).map(para => {
+    if (para.trim() === '* * *') return '<div class="scene-break" style="text-align:center;margin:1em 0;letter-spacing:0.5em">* * *</div>';
+    if (!para.trim()) return '';
+    // Single line breaks become spaces, double line breaks become new paragraphs with spacing
+    return '<p>' + escapeHtml(para.replace(/\n/g,' ').trim()) + '</p>';
+  }).join('\n');
+}
+
+function escapeHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sanitize(s) {
+  return (s||'buch').replace(/[^a-zA-Z0-9äöüÄÖÜß_\- ]/g,'').replace(/\s+/g,'_');
+}
+
+function download(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// ===== TABS =====
+function switchTab(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'preview') updatePreviewContent();
+  if (id === 'export') { collectMeta(); renderKdpChecklist(); syncMetaFields(); }
+  if (id === 'editor') updateEditorStats();
+  if (id === 'chapters') { renderChapterList(); updateStats(); }
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ===== AUTO-SAVE every 60s =====
+setInterval(() => { saveCurrentChapter(); saveAll(); }, 60000);
+
+// ===== START =====
+init();
+</script>
+</body>
+</html>
